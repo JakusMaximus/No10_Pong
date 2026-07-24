@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Pong - Greater Manchester vs London</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #00ff66;
+      font-family: "Courier New", Courier, monospace;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      letter-spacing: 2px;
+      margin-bottom: 5px;
+    }
+    .instructions {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    canvas {
+      border: 4px solid #00ff66;
+      background-color: #050f05;
+      box-shadow: 0 0 20px rgba(0, 255, 102, 0.3);
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>ANDY BURNHAM PONG</h1>
+  <div class="instructions">Player 1 (Manchester): W / S keys &nbsp;|&nbsp; Player 2 (London): Up / Down Arrow keys</div>
+
+  <canvas id="pongCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('pongCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Game Objects
+    const ball = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      radius: 18,
+      speed: 5,
+      velocityX: 5,
+      velocityY: 5
+    };
+
+    const playerLeft = {
+      x: 30,
+      y: canvas.height / 2 - 45,
+      width: 14,
+      height: 90,
+      score: 0,
+      speed: 8,
+      label: "MANCHESTER"
+    };
+
+    const playerRight = {
+      x: canvas.width - 44,
+      y: canvas.height / 2 - 45,
+      width: 14,
+      height: 90,
+      score: 0,
+      speed: 8,
+      label: "LONDON"
+    };
+
+    const keys = {};
+    window.addEventListener('keydown', (e) => keys[e.key] = true);
+    window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+    function update() {
+      ball.x += ball.velocityX;
+      ball.y += ball.velocityY;
+
+      // Wall collision (top/bottom)
+      if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+        ball.velocityY = -ball.velocityY;
+      }
+
+      // Player controls
+      if (keys['w'] && playerLeft.y > 0) playerLeft.y -= playerLeft.speed;
+      if (keys['s'] && playerLeft.y < canvas.height - playerLeft.height) playerLeft.y += playerLeft.speed;
+
+      if (keys['ArrowUp'] && playerRight.y > 0) playerRight.y -= playerRight.speed;
+      if (keys['ArrowDown'] && playerRight.y < canvas.height - playerRight.height) playerRight.y += playerRight.speed;
+
+      // Paddle collisions
+      const activePaddle = (ball.x < canvas.width / 2) ? playerLeft : playerRight;
+      
+      if (collision(ball, activePaddle)) {
+        let collidePoint = ball.y - (activePaddle.y + activePaddle.height / 2);
+        collidePoint = collidePoint / (activePaddle.height / 2);
+        
+        let angleRad = (Math.PI / 4) * collidePoint;
+        let direction = (ball.x < canvas.width / 2) ? 1 : -1;
+
+        ball.velocityX = direction * ball.speed * Math.cos(angleRad);
+        ball.velocityY = ball.speed * Math.sin(angleRad);
+        ball.speed += 0.2;
+      }
+
+      // Scoring
+      if (ball.x - ball.radius < 0) {
+        playerRight.score++;
+        resetBall();
+      } else if (ball.x + ball.radius > canvas.width) {
+        playerLeft.score++;
+        resetBall();
+      }
+    }
+
+    function collision(b, p) {
+      b.top = b.y - b.radius;
+      b.bottom = b.y + b.radius;
+      b.left = b.x - b.radius;
+      b.right = b.x + b.radius;
+
+      p.top = p.y;
+      p.bottom = p.y + p.height;
+      p.left = p.x;
+      p.right = p.x + p.width;
+
+      return b.right > p.left && b.bottom > p.top && b.left < p.right && b.top < p.bottom;
+    }
+
+    function resetBall() {
+      ball.x = canvas.width / 2;
+      ball.y = canvas.height / 2;
+      ball.speed = 5;
+      ball.velocityX = -ball.velocityX;
+    }
+
+    function render() {
+      // Clear background
+      ctx.fillStyle = '#050f05';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Center net
+      ctx.strokeStyle = '#004411';
+      ctx.lineWidth = 4;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2, 0);
+      ctx.lineTo(canvas.width / 2, canvas.height);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Scores
+      ctx.fillStyle = '#00ff66';
+      ctx.font = '40px "Courier New", Courier, monospace';
+      ctx.fillText(playerLeft.score, canvas.width / 4, 60);
+      ctx.fillText(playerRight.score, (canvas.width / 4) * 3, 60);
+
+      // Paddles
+      ctx.fillStyle = '#00ff66';
+      ctx.fillRect(playerLeft.x, playerLeft.y, playerLeft.width, playerLeft.height);
+      ctx.fillRect(playerRight.x, playerRight.y, playerRight.width, playerRight.height);
+
+      // Paddle Labels (Rotated vertical text or placed neatly above)
+      ctx.font = '11px "Courier New", Courier, monospace';
+      ctx.fillStyle = '#ffff00';
+      ctx.fillText(playerLeft.label, playerLeft.x - 22, playerLeft.y + playerLeft.height / 2);
+      ctx.fillText(playerRight.label, playerRight.x - 10, playerRight.y + playerRight.height / 2);
+
+      // Draw Andy Burnham's Head (Retro ASCII/Pixel caricature representation inside ball)
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = '#00ff66';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#000';
+      ctx.stroke();
+
+      // Simple pixel face features inside the ball
+      ctx.fillStyle = '#000';
+      // Eyes
+      ctx.fillRect(ball.x - 6, ball.y - 4, 3, 3);
+      ctx.fillRect(ball.x + 3, ball.y - 4, 3, 3);
+      // Signature smile / determined expression line
+      ctx.fillRect(ball.x - 5, ball.y + 5, 10, 2);
+    }
+
+    function gameLoop() {
+      update();
+      render();
+    }
+
+    setInterval(gameLoop, 1000 / 60);
+  </script>
+
+</body>
+</html>
