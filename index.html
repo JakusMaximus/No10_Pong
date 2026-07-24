@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro Pong - Manchester vs London</title>
+  <title>Retro Pong - Manchester vs London (Solo)</title>
   <style>
     body {
       background-color: #000;
@@ -33,8 +33,8 @@
 </head>
 <body>
 
-  <h1>ANDY BURNHAM PONG</h1>
-  <div class="instructions">Player 1 (Manchester): W / S keys &nbsp;|&nbsp; Player 2 (London): Up / Down Arrow keys</div>
+  <h1>ANDY BURNHAM PONG (SOLO)</h1>
+  <div class="instructions">Player 1 (Manchester): W / S keys &nbsp;|&nbsp; London: AI Controlled</div>
 
   <canvas id="pongCanvas" width="800" height="400"></canvas>
 
@@ -74,7 +74,7 @@
       width: 14,
       height: 90,
       score: 0,
-      speed: 8,
+      speed: 5.5, // AI Speed (slightly lower than player max speed so it's beatable)
       label: "LONDON"
     };
 
@@ -90,11 +90,21 @@
         ball.velocityY = -ball.velocityY;
       }
 
+      // Player 1 Controls (Manchester - W / S)
       if (keys['w'] && playerLeft.y > 0) playerLeft.y -= playerLeft.speed;
       if (keys['s'] && playerLeft.y < canvas.height - playerLeft.height) playerLeft.y += playerLeft.speed;
 
-      if (keys['ArrowUp'] && playerRight.y > 0) playerRight.y -= playerRight.speed;
-      if (keys['ArrowDown'] && playerRight.y < canvas.height - playerRight.height) playerRight.y += playerRight.speed;
+      // AI Controls (London - tracks the ball automatically)
+      let aiCenter = playerRight.y + playerRight.height / 2;
+      if (aiCenter < ball.y - 10) {
+        playerRight.y += playerRight.speed;
+      } else if (aiCenter > ball.y + 10) {
+        playerRight.y -= playerRight.speed;
+      }
+      
+      // Keep AI paddle within canvas bounds
+      if (playerRight.y < 0) playerRight.y = 0;
+      if (playerRight.y > canvas.height - playerRight.height) playerRight.y = canvas.height - playerRight.height;
 
       const activePaddle = (ball.x < canvas.width / 2) ? playerLeft : playerRight;
       
