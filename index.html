@@ -120,7 +120,7 @@
 
         ball.velocityX = direction * ball.speed * Math.cos(angleRad);
         ball.velocityY = ball.speed * Math.sin(angleRad);
-        ball.speed += 0.15; // Slower speed increase per hit
+        ball.speed += 0.5; // <--- CHANGE THIS NUMBER
       }
 
       if (ball.x - ball.radius < 0) {
