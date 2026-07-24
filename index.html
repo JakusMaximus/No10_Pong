@@ -125,7 +125,12 @@
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
 
-      if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+      // FIXED: Top & Bottom Wall Collisions with strict boundary clamping to prevent sticking
+      if (ball.y - ball.radius < 0) {
+        ball.y = ball.radius; // Snap back inside bounds
+        ball.velocityY = -ball.velocityY;
+      } else if (ball.y + ball.radius > canvas.height) {
+        ball.y = canvas.height - ball.radius; // Snap back inside bounds
         ball.velocityY = -ball.velocityY;
       }
 
@@ -214,13 +219,11 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       if (!gameStarted) {
-        // Draw Start Menu Selection Screen
         ctx.fillStyle = '#00ff66';
         ctx.font = '28px "Courier New", Courier, monospace';
         ctx.textAlign = 'center';
         ctx.fillText('CHOOSE YOUR SIDE', canvas.width / 2, 150);
 
-        // Manchester Button
         ctx.fillStyle = '#004411';
         ctx.fillRect(250, 240, 150, 50);
         ctx.strokeStyle = '#00ff66';
@@ -229,7 +232,6 @@
         ctx.font = '16px "Courier New", Courier, monospace';
         ctx.fillText('MANCHESTER', 325, 271);
 
-        // London Button
         ctx.fillStyle = '#004411';
         ctx.fillRect(420, 240, 150, 50);
         ctx.strokeStyle = '#00ff66';
@@ -242,7 +244,6 @@
       }
 
       if (gameOver) {
-        // Determine Win/Lose based on humanSide
         let humanWon = (humanSide === 'manchester' && playerLeft.score >= 10) || (humanSide === 'london' && playerRight.score >= 10);
 
         ctx.fillStyle = '#00ff66';
@@ -250,7 +251,6 @@
         ctx.textAlign = 'center';
         ctx.fillText(humanWon ? 'YOU WIN!' : 'YOU LOSE', canvas.width / 2, 150);
 
-        // Main Menu / Restart Button
         ctx.fillStyle = '#004411';
         ctx.fillRect(325, 240, 150, 50);
         ctx.strokeStyle = '#00ff66';
@@ -263,7 +263,6 @@
         return;
       }
 
-      // Center net
       ctx.strokeStyle = '#004411';
       ctx.lineWidth = 4;
       ctx.setLineDash([10, 10]);
@@ -273,18 +272,15 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Scores
       ctx.fillStyle = '#00ff66';
       ctx.font = '40px "Courier New", Courier, monospace';
       ctx.fillText(playerLeft.score, canvas.width / 4, 60);
       ctx.fillText(playerRight.score, (canvas.width / 4) * 3, 60);
 
-      // White Paddles
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(playerLeft.x, playerLeft.y, playerLeft.width, playerLeft.height);
       ctx.fillRect(playerRight.x, playerRight.y, playerRight.width, playerRight.height);
 
-      // Red, Non-bold Vertical Labels
       ctx.font = '12px "Courier New", Courier, monospace';
       ctx.fillStyle = '#ff0000';
 
@@ -302,7 +298,6 @@
       ctx.fillText(playerRight.label, 0, 4);
       ctx.restore();
 
-      // Ball Rendering with Burnham.png
       ctx.save();
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
