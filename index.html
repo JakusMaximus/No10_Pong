@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro Pong - Greater Manchester vs London</title>
+  <title>Retro Pong - Manchester vs London</title>
   <style>
     body {
       background-color: #000;
@@ -42,11 +42,18 @@
     const canvas = document.getElementById('pongCanvas');
     const ctx = canvas.getContext('2d');
 
+    // --- CUSTOM IMAGE SETUP ---
+    // Change this URL or filename to any local or hosted image file (e.g. 'burnham.png')
+    const ballImage = new Image();
+    ballImage.src = 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Andy_Burnham_official_portrait_%28cropped%29.jpg/220px-Andy_Burnham_official_portrait_%28cropped%29.jpg';
+    let imageLoaded = false;
+    ballImage.onload = () => { imageLoaded = true; };
+
     // Game Objects
     const ball = {
       x: canvas.width / 2,
       y: canvas.height / 2,
-      radius: 18,
+      radius: 20, // Size of the circular image wrapper
       speed: 5,
       velocityX: 5,
       velocityY: 5
@@ -164,28 +171,48 @@
       ctx.fillRect(playerLeft.x, playerLeft.y, playerLeft.width, playerLeft.height);
       ctx.fillRect(playerRight.x, playerRight.y, playerRight.width, playerRight.height);
 
-      // Paddle Labels (Rotated vertical text or placed neatly above)
-      ctx.font = '11px "Courier New", Courier, monospace';
+      // --- VERTICAL PADDLE LABELS ---
+      ctx.font = 'bold 12px "Courier New", Courier, monospace';
       ctx.fillStyle = '#ffff00';
-      ctx.fillText(playerLeft.label, playerLeft.x - 22, playerLeft.y + playerLeft.height / 2);
-      ctx.fillText(playerRight.label, playerRight.x - 10, playerRight.y + playerRight.height / 2);
 
-      // Draw Andy Burnham's Head (Retro ASCII/Pixel caricature representation inside ball)
+      // Left Paddle Label (Manchester) - rotated 90 degrees upwards
+      ctx.save();
+      ctx.translate(playerLeft.x + playerLeft.width / 2, playerLeft.y + playerLeft.height / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillText(playerLeft.label, 0, 4);
+      ctx.restore();
+
+      // Right Paddle Label (London) - rotated 90 degrees downwards
+      ctx.save();
+      ctx.translate(playerRight.x + playerRight.width / 2, playerRight.y + playerRight.height / 2);
+      ctx.rotate(Math.PI / 2);
+      ctx.textAlign = 'center';
+      ctx.fillText(playerRight.label, 0, 4);
+      ctx.restore();
+
+      // --- CUSTOM IMAGE BALL ---
+      ctx.save();
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-      ctx.fillStyle = '#00ff66';
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#000';
-      ctx.stroke();
+      ctx.closePath();
+      ctx.clip(); // Clips the image into a neat circular shape
 
-      // Simple pixel face features inside the ball
-      ctx.fillStyle = '#000';
-      // Eyes
-      ctx.fillRect(ball.x - 6, ball.y - 4, 3, 3);
-      ctx.fillRect(ball.x + 3, ball.y - 4, 3, 3);
-      // Signature smile / determined expression line
-      ctx.fillRect(ball.x - 5, ball.y + 5, 10, 2);
+      if (imageLoaded) {
+        ctx.drawImage(ballImage, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
+      } else {
+        // Fallback green fill if image is still loading
+        ctx.fillStyle = '#00ff66';
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Draw a crisp border around the circular ball
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#00ff66';
+      ctx.stroke();
     }
 
     function gameLoop() {
