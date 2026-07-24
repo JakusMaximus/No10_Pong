@@ -45,6 +45,7 @@
 
     // Game State Variables
     let gameStarted = false;
+    let gameOver = false;
     let humanSide = 'london'; // default selection
 
     // Load local Burnham.png file directly from your repository
@@ -87,28 +88,39 @@
     window.addEventListener('keydown', (e) => keys[e.key] = true);
     window.addEventListener('keyup', (e) => keys[e.key] = false);
 
-    // Click listener for side selection menu
+    // Click listener for side selection menu and game over restart button
     canvas.addEventListener('click', (e) => {
-      if (!gameStarted) {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
+      if (!gameStarted) {
         // Check Manchester Button (left box)
         if (mouseX >= 250 && mouseX <= 400 && mouseY >= 240 && mouseY <= 290) {
           humanSide = 'manchester';
           gameStarted = true;
+          gameOver = false;
         }
         // Check London Button (right box)
         if (mouseX >= 420 && mouseX <= 570 && mouseY >= 240 && mouseY <= 290) {
           humanSide = 'london';
           gameStarted = true;
+          gameOver = false;
+        }
+      } else if (gameOver) {
+        // Check Restart Button on Game Over screen
+        if (mouseX >= 325 && mouseX <= 475 && mouseY >= 240 && mouseY <= 290) {
+          gameStarted = false;
+          gameOver = false;
+          playerLeft.score = 0;
+          playerRight.score = 0;
+          resetBall();
         }
       }
     });
 
     function update() {
-      if (!gameStarted) return;
+      if (!gameStarted || gameOver) return;
 
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
@@ -156,15 +168,23 @@
 
         ball.velocityX = direction * ball.speed * Math.cos(angleRad);
         ball.velocityY = ball.speed * Math.sin(angleRad);
-        ball.speed += 0.5; // Quicker speed increase per hit
+        ball.speed += 0.5; 
       }
 
       if (ball.x - ball.radius < 0) {
         playerRight.score++;
-        resetBall();
+        if (playerRight.score >= 10) {
+          gameOver = true;
+        } else {
+          resetBall();
+        }
       } else if (ball.x + ball.radius > canvas.width) {
         playerLeft.score++;
-        resetBall();
+        if (playerLeft.score >= 10) {
+          gameOver = true;
+        } else {
+          resetBall();
+        }
       }
     }
 
@@ -216,6 +236,28 @@
         ctx.strokeRect(420, 240, 150, 50);
         ctx.fillStyle = '#ffff00';
         ctx.fillText('LONDON', 495, 271);
+
+        ctx.textAlign = 'left';
+        return;
+      }
+
+      if (gameOver) {
+        // Determine Win/Lose based on humanSide
+        let humanWon = (humanSide === 'manchester' && playerLeft.score >= 10) || (humanSide === 'london' && playerRight.score >= 10);
+
+        ctx.fillStyle = '#00ff66';
+        ctx.font = '36px "Courier New", Courier, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(humanWon ? 'YOU WIN!' : 'YOU LOSE', canvas.width / 2, 150);
+
+        // Main Menu / Restart Button
+        ctx.fillStyle = '#004411';
+        ctx.fillRect(325, 240, 150, 50);
+        ctx.strokeStyle = '#00ff66';
+        ctx.strokeRect(325, 240, 150, 50);
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '16px "Courier New", Courier, monospace';
+        ctx.fillText('MAIN MENU', 400, 271);
 
         ctx.textAlign = 'left';
         return;
