@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro Pong - London vs Manchester (Easy Mode)</title>
+  <title>No10 Po.ng</title>
   <style>
     body {
       background-color: #000;
@@ -28,19 +28,24 @@
       box-shadow: 0 0 20px rgba(0, 255, 102, 0.3);
       display: block;
       margin: 0 auto;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-  <h1>No10 Pong (no dot)</h1>
-  <div class="instructions">Manchester: Slower AI &nbsp;|&nbsp; Player (London): Up / Down Arrow keys</div>
+  <h1>NO10 PO.NG</h1>
+  <div class="instructions">Use Up / Down Arrow keys to control your selected side</div>
 
   <canvas id="pongCanvas" width="800" height="400"></canvas>
 
   <script>
     const canvas = document.getElementById('pongCanvas');
     const ctx = canvas.getContext('2d');
+
+    // Game State Variables
+    let gameStarted = false;
+    let humanSide = 'london'; // default selection
 
     // Load local Burnham.png file directly from your repository
     const ballImage = new Image();
@@ -53,23 +58,21 @@
       x: canvas.width / 2,
       y: canvas.height / 2,
       radius: 22,
-      speed: 4.5, // <--- CHANGE THIS
-      velocityX: 4.5, // <--- CHANGE THIS
-      velocityY: 4.5  // <--- CHANGE THIS
+      speed: 6,
+      velocityX: 6,
+      velocityY: 6
     };
 
-    // Left Paddle - Manchester (AI Controlled - made much slower and easier)
     const playerLeft = {
       x: 30,
       y: canvas.height / 2 - 45,
       width: 14,
       height: 90,
       score: 0,
-      speed: 3.5, // Reduced speed so it can't keep up easily
+      speed: 4, // Easy AI speed
       label: "MANCHESTER"
     };
 
-    // Right Paddle - London (Human Controlled)
     const playerRight = {
       x: canvas.width - 44,
       y: canvas.height / 2 - 45,
@@ -84,7 +87,29 @@
     window.addEventListener('keydown', (e) => keys[e.key] = true);
     window.addEventListener('keyup', (e) => keys[e.key] = false);
 
+    // Click listener for side selection menu
+    canvas.addEventListener('click', (e) => {
+      if (!gameStarted) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        // Check Manchester Button (left box)
+        if (mouseX >= 250 && mouseX <= 400 && mouseY >= 240 && mouseY <= 290) {
+          humanSide = 'manchester';
+          gameStarted = true;
+        }
+        // Check London Button (right box)
+        if (mouseX >= 420 && mouseX <= 570 && mouseY >= 240 && mouseY <= 290) {
+          humanSide = 'london';
+          gameStarted = true;
+        }
+      }
+    });
+
     function update() {
+      if (!gameStarted) return;
+
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
 
@@ -92,22 +117,33 @@
         ball.velocityY = -ball.velocityY;
       }
 
-      // Easier AI Controls for Manchester (Left Paddle) - lazy tracking
-      let aiCenter = playerLeft.y + playerLeft.height / 2;
-      // Only move if the ball is significantly away from the center of the paddle
-      if (aiCenter < ball.y - 25) {
-        playerLeft.y += playerLeft.speed;
-      } else if (aiCenter > ball.y + 25) {
-        playerLeft.y -= playerLeft.speed;
+      // Manchester Control (Left)
+      if (humanSide === 'manchester') {
+        if (keys['ArrowUp'] && playerLeft.y > 0) playerLeft.y -= playerRight.speed;
+        if (keys['ArrowDown'] && playerLeft.y < canvas.height - playerLeft.height) playerLeft.y += playerRight.speed;
+      } else {
+        // AI for Manchester
+        let aiCenter = playerLeft.y + playerLeft.height / 2;
+        if (aiCenter < ball.y - 25) playerLeft.y += playerLeft.speed;
+        else if (aiCenter > ball.y + 25) playerLeft.y -= playerLeft.speed;
+        
+        if (playerLeft.y < 0) playerLeft.y = 0;
+        if (playerLeft.y > canvas.height - playerLeft.height) playerLeft.y = canvas.height - playerLeft.height;
       }
-      
-      // Keep AI paddle within canvas bounds
-      if (playerLeft.y < 0) playerLeft.y = 0;
-      if (playerLeft.y > canvas.height - playerLeft.height) playerLeft.y = canvas.height - playerLeft.height;
 
-      // Human Controls for London (Right Paddle - Arrow Up / Arrow Down)
-      if (keys['ArrowUp'] && playerRight.y > 0) playerRight.y -= playerRight.speed;
-      if (keys['ArrowDown'] && playerRight.y < canvas.height - playerRight.height) playerRight.y += playerRight.speed;
+      // London Control (Right)
+      if (humanSide === 'london') {
+        if (keys['ArrowUp'] && playerRight.y > 0) playerRight.y -= playerRight.speed;
+        if (keys['ArrowDown'] && playerRight.y < canvas.height - playerRight.height) playerRight.y += playerRight.speed;
+      } else {
+        // AI for London
+        let aiCenter = playerRight.y + playerRight.height / 2;
+        if (aiCenter < ball.y - 25) playerRight.y += playerLeft.speed;
+        else if (aiCenter > ball.y + 25) playerRight.y -= playerLeft.speed;
+
+        if (playerRight.y < 0) playerRight.y = 0;
+        if (playerRight.y > canvas.height - playerRight.height) playerRight.y = canvas.height - playerRight.height;
+      }
 
       const activePaddle = (ball.x < canvas.width / 2) ? playerLeft : playerRight;
       
@@ -120,7 +156,7 @@
 
         ball.velocityX = direction * ball.speed * Math.cos(angleRad);
         ball.velocityY = ball.speed * Math.sin(angleRad);
-        ball.speed += 0.5; // <--- CHANGE THIS NUMBER
+        ball.speed += 0.5; // Quicker speed increase per hit
       }
 
       if (ball.x - ball.radius < 0) {
@@ -149,7 +185,7 @@
     function resetBall() {
       ball.x = canvas.width / 2;
       ball.y = canvas.height / 2;
-      ball.speed = 4.5;
+      ball.speed = 6;
       ball.velocityX = -ball.velocityX;
     }
 
@@ -157,6 +193,35 @@
       ctx.fillStyle = '#050f05';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      if (!gameStarted) {
+        // Draw Start Menu Selection Screen
+        ctx.fillStyle = '#00ff66';
+        ctx.font = '28px "Courier New", Courier, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('CHOOSE YOUR SIDE', canvas.width / 2, 150);
+
+        // Manchester Button
+        ctx.fillStyle = '#004411';
+        ctx.fillRect(250, 240, 150, 50);
+        ctx.strokeStyle = '#00ff66';
+        ctx.strokeRect(250, 240, 150, 50);
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '16px "Courier New", Courier, monospace';
+        ctx.fillText('MANCHESTER', 325, 271);
+
+        // London Button
+        ctx.fillStyle = '#004411';
+        ctx.fillRect(420, 240, 150, 50);
+        ctx.strokeStyle = '#00ff66';
+        ctx.strokeRect(420, 240, 150, 50);
+        ctx.fillStyle = '#ffff00';
+        ctx.fillText('LONDON', 495, 271);
+
+        ctx.textAlign = 'left';
+        return;
+      }
+
+      // Center net
       ctx.strokeStyle = '#004411';
       ctx.lineWidth = 4;
       ctx.setLineDash([10, 10]);
@@ -166,17 +231,19 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
+      // Scores
       ctx.fillStyle = '#00ff66';
       ctx.font = '40px "Courier New", Courier, monospace';
       ctx.fillText(playerLeft.score, canvas.width / 4, 60);
       ctx.fillText(playerRight.score, (canvas.width / 4) * 3, 60);
 
+      // White Paddles
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(playerLeft.x, playerLeft.y, playerLeft.width, playerLeft.height);
       ctx.fillRect(playerRight.x, playerRight.y, playerRight.width, playerRight.height);
 
-      // Vertical Labels
-      ctx.font = 'bold 10px "Courier New", Courier, monospace';
+      // Red, Non-bold Vertical Labels
+      ctx.font = '12px "Courier New", Courier, monospace';
       ctx.fillStyle = '#ff0000';
 
       ctx.save();
