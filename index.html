@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Retro Pong - Manchester vs London (Solo)</title>
+  <title>Retro Pong - London vs Manchester (Solo)</title>
   <style>
     body {
       background-color: #000;
@@ -33,8 +33,8 @@
 </head>
 <body>
 
-  <h1>No10 Pong</h1>
-  <div class="instructions">Player 1 (Manchester): W / S keys &nbsp;|&nbsp; London: AI Controlled</div>
+  <h1>ANDY BURNHAM PONG (SOLO)</h1>
+  <div class="instructions">Manchester: AI Controlled &nbsp;|&nbsp; Player (London): Up / Down Arrow keys</div>
 
   <canvas id="pongCanvas" width="800" height="400"></canvas>
 
@@ -58,23 +58,25 @@
       velocityY: 5
     };
 
+    // Left Paddle is now Manchester (AI Controlled)
     const playerLeft = {
       x: 30,
       y: canvas.height / 2 - 45,
       width: 14,
       height: 90,
       score: 0,
-      speed: 8,
+      speed: 5.5, // AI Speed
       label: "MANCHESTER"
     };
 
+    // Right Paddle is now London (Human Controlled via Arrow Keys)
     const playerRight = {
       x: canvas.width - 44,
       y: canvas.height / 2 - 45,
       width: 14,
       height: 90,
       score: 0,
-      speed: 5.5, // AI Speed (slightly lower than player max speed so it's beatable)
+      speed: 8, // Human Speed
       label: "LONDON"
     };
 
@@ -90,21 +92,21 @@
         ball.velocityY = -ball.velocityY;
       }
 
-      // Player 1 Controls (Manchester - W / S)
-      if (keys['w'] && playerLeft.y > 0) playerLeft.y -= playerLeft.speed;
-      if (keys['s'] && playerLeft.y < canvas.height - playerLeft.height) playerLeft.y += playerLeft.speed;
-
-      // AI Controls (London - tracks the ball automatically)
-      let aiCenter = playerRight.y + playerRight.height / 2;
+      // AI Controls for Manchester (Left Paddle) - tracks the ball automatically
+      let aiCenter = playerLeft.y + playerLeft.height / 2;
       if (aiCenter < ball.y - 10) {
-        playerRight.y += playerRight.speed;
+        playerLeft.y += playerLeft.speed;
       } else if (aiCenter > ball.y + 10) {
-        playerRight.y -= playerRight.speed;
+        playerLeft.y -= playerLeft.speed;
       }
       
       // Keep AI paddle within canvas bounds
-      if (playerRight.y < 0) playerRight.y = 0;
-      if (playerRight.y > canvas.height - playerRight.height) playerRight.y = canvas.height - playerRight.height;
+      if (playerLeft.y < 0) playerLeft.y = 0;
+      if (playerLeft.y > canvas.height - playerLeft.height) playerLeft.y = canvas.height - playerLeft.height;
+
+      // Human Controls for London (Right Paddle - Arrow Up / Arrow Down)
+      if (keys['ArrowUp'] && playerRight.y > 0) playerRight.y -= playerRight.speed;
+      if (keys['ArrowDown'] && playerRight.y < canvas.height - playerRight.height) playerRight.y += playerRight.speed;
 
       const activePaddle = (ball.x < canvas.width / 2) ? playerLeft : playerRight;
       
@@ -174,7 +176,7 @@
 
       // Vertical Labels
       ctx.font = 'bold 12px "Courier New", Courier, monospace';
-      ctx.fillStyle = '#ff0000';
+      ctx.fillStyle = '#ffff00';
 
       ctx.save();
       ctx.translate(playerLeft.x + playerLeft.width / 2, playerLeft.y + playerLeft.height / 2);
