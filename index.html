@@ -33,7 +33,7 @@
 </head>
 <body>
 
-  <h1>No 10 PONG</h1>
+  <h1>ANDY BURNHAM PONG</h1>
   <div class="instructions">Player 1 (Manchester): W / S keys &nbsp;|&nbsp; Player 2 (London): Up / Down Arrow keys</div>
 
   <canvas id="pongCanvas" width="800" height="400"></canvas>
@@ -42,8 +42,7 @@
     const canvas = document.getElementById('pongCanvas');
     const ctx = canvas.getContext('2d');
 
-    // --- CUSTOM IMAGE SETUP ---
-    // Change this URL or filename to any local or hosted image file (e.g. 'burnham.png')
+    // Load local Burnham.png file directly from your repository
     const ballImage = new Image();
     ballImage.src = 'Burnham.png';
     let imageLoaded = false;
@@ -53,7 +52,7 @@
     const ball = {
       x: canvas.width / 2,
       y: canvas.height / 2,
-      radius: 20, // Size of the circular image wrapper
+      radius: 22,
       speed: 5,
       velocityX: 5,
       velocityY: 5
@@ -87,19 +86,16 @@
       ball.x += ball.velocityX;
       ball.y += ball.velocityY;
 
-      // Wall collision (top/bottom)
       if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
         ball.velocityY = -ball.velocityY;
       }
 
-      // Player controls
       if (keys['w'] && playerLeft.y > 0) playerLeft.y -= playerLeft.speed;
       if (keys['s'] && playerLeft.y < canvas.height - playerLeft.height) playerLeft.y += playerLeft.speed;
 
       if (keys['ArrowUp'] && playerRight.y > 0) playerRight.y -= playerRight.speed;
       if (keys['ArrowDown'] && playerRight.y < canvas.height - playerRight.height) playerRight.y += playerRight.speed;
 
-      // Paddle collisions
       const activePaddle = (ball.x < canvas.width / 2) ? playerLeft : playerRight;
       
       if (collision(ball, activePaddle)) {
@@ -114,7 +110,6 @@
         ball.speed += 0.2;
       }
 
-      // Scoring
       if (ball.x - ball.radius < 0) {
         playerRight.score++;
         resetBall();
@@ -146,11 +141,9 @@
     }
 
     function render() {
-      // Clear background
       ctx.fillStyle = '#050f05';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Center net
       ctx.strokeStyle = '#004411';
       ctx.lineWidth = 4;
       ctx.setLineDash([10, 10]);
@@ -160,22 +153,19 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // Scores
       ctx.fillStyle = '#00ff66';
       ctx.font = '40px "Courier New", Courier, monospace';
       ctx.fillText(playerLeft.score, canvas.width / 4, 60);
       ctx.fillText(playerRight.score, (canvas.width / 4) * 3, 60);
 
-      // Paddles
       ctx.fillStyle = '#00ff66';
       ctx.fillRect(playerLeft.x, playerLeft.y, playerLeft.width, playerLeft.height);
       ctx.fillRect(playerRight.x, playerRight.y, playerRight.width, playerRight.height);
 
-      // --- VERTICAL PADDLE LABELS ---
+      // Vertical Labels
       ctx.font = 'bold 12px "Courier New", Courier, monospace';
       ctx.fillStyle = '#ffff00';
 
-      // Left Paddle Label (Manchester) - rotated 90 degrees upwards
       ctx.save();
       ctx.translate(playerLeft.x + playerLeft.width / 2, playerLeft.y + playerLeft.height / 2);
       ctx.rotate(-Math.PI / 2);
@@ -183,7 +173,6 @@
       ctx.fillText(playerLeft.label, 0, 4);
       ctx.restore();
 
-      // Right Paddle Label (London) - rotated 90 degrees downwards
       ctx.save();
       ctx.translate(playerRight.x + playerRight.width / 2, playerRight.y + playerRight.height / 2);
       ctx.rotate(Math.PI / 2);
@@ -191,23 +180,21 @@
       ctx.fillText(playerRight.label, 0, 4);
       ctx.restore();
 
-      // --- CUSTOM IMAGE BALL ---
+      // Ball Rendering with Burnham.png
       ctx.save();
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
       ctx.closePath();
-      ctx.clip(); // Clips the image into a neat circular shape
+      ctx.clip();
 
       if (imageLoaded) {
         ctx.drawImage(ballImage, ball.x - ball.radius, ball.y - ball.radius, ball.radius * 2, ball.radius * 2);
       } else {
-        // Fallback green fill if image is still loading
         ctx.fillStyle = '#00ff66';
         ctx.fill();
       }
       ctx.restore();
 
-      // Draw a crisp border around the circular ball
       ctx.beginPath();
       ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
       ctx.lineWidth = 2;
